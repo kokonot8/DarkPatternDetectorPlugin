@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="popup.css" rel="stylesheet"/>
+  </head>
+  <body>
+    <!-- Header -->
+    <!-- ScoreSection -->
+    <!--TabSection -->
+    <!--IssueList -->
+    <!--IssueItem -->
+    <!--FooterSection -->
+
+    <div class="header">
+      <img src="icons8-laptop-error-100.png" alt="logo" width="20px"/>
+      <h1>Unethical Element Detector<h1>
+    </div>
+
+    <div class="score-section">
+      <p>Unethical Score: XX/100</p>
+      <progress value="60" max="100"></progress>
+      <p>X</p>
+    </div>
+
+    <div class="tab-section">
+      <button class="tab">Overview</button>
+      <button class="tab">Detail</button>
+    </div>
+
+    <div class="overview">
+      <h2>Detected Dark Patterns:</h2>
+      <ul>
+        <li> 
+          <p class="type">Pre-selected Checkbox: </p>
+          <p id="pre-selected-checkbox" class="number">Loading</p>
+        </li>
+      </ul>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+
+  <div class="detail">
+    <h2>Details of Detected Dark Patterns</h2>
+    <div id="issue-list">
+    </div>
+  </div>
+
+
+
+

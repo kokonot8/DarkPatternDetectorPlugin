@@ -1,0 +1,61 @@
+
+body {
+    width: 500px;
+    margin: 0;
+}
+
+.header {
+    background-color: black;
+    margin-top: 0;
+    height: 50px;
+    border-radius: 5px;
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+
+h1{
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 0;
+    padding: 0;
+}
+
+.score-section {
+    padding: 20px;
+}
+
+progress {
+    width: 90%;
+}
+
+.tab-section {
+    border: 2px solid grey;
+    height: 50px;
+
+    box-sizing: border-box;
+
+    display: flex;
+
+}
+
+.tab-section button {
+    width: 50%;
+    height: 100%;
+}
+
+.overview li{
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    padding: 20px;
+
+}
+
+.detail .issue-item {
+    border: 1px solid black;
+    border-radius: 5px;
+}
