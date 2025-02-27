@@ -146,5 +146,161 @@ function detectBaitSwitch() {
     
 
 
+
+//To be: 换成自己写的
+// 使用 Google Gemini API 检测 Confirmshaming 暗模式
+
+// 检测函数
+async function detectConfirmshaming() {
+    // 收集页面上的相关元素
+    const elementsToCheck = [];
+    
+    // 1. 检查退订、取消、关闭的相关按钮/链接
+    const cancelButtons = document.querySelectorAll('a, button');
+    cancelButtons.forEach(element => {
+    const text = element.innerText || element.textContent;
+    console.log('text:',text);
+    if (text) {
+        // 关注与取消、拒绝、关闭等相关的文本
+        const cancelKeywords = ['no thanks', 'cancel', 'close', 'maybe later', 'not now','no', 'unsubscribe'];
+        if (cancelKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
+        elementsToCheck.push({
+            element: element,
+            text: text.trim(),
+            type: 'cancel button'
+        });
+        }
+    }
+    });
+    
+    // 2. 检查弹窗和提示框
+    const possibleModals = document.querySelectorAll('.modal, [class*="modal"], [class*="popup"], [class*="dialog"], [id*="modal"], [id*="popup"], [id*="dialog"]');
+    possibleModals.forEach(modal => {
+    const dismissButtons = modal.querySelectorAll('a, button');
+    dismissButtons.forEach(button => {
+        const text = button.innerText || button.textContent;
+        console.log('text:',text);
+        if (text) {
+        elementsToCheck.push({
+            element: button,
+            text: text.trim(),
+            type: 'modal dismiss button',
+            context: modal.innerText || modal.textContent
+        });
+        }
+    });
+    });
+
+    console.log('elementsToCheck:', elementsToCheck);
+    
+    // 处理收集到的元素
+    const confirmshamingResults = [];
+    
+    for (const item of elementsToCheck) {
+    // 使用 Google Gemini API 来分析文本
+    const isConfirmshaming = await checkTextWithGemini(item.text, item.context || '');
+    
+    if (isConfirmshaming) {
+        // 标记问题元素
+        item.element.style.outline = '2px solid red';
+        
+        // 将结果加入列表
+        confirmshamingResults.push({
+        'pattern': 'confirmshaming',
+        'detail': `用户拒绝时使用羞辱性语言: "${item.text}"`,
+        'element': item.element
+        });
+    }
+    }
+    
+    // 发送结果到背景脚本
+    if (confirmshamingResults.length > 0) {
+    (async () => {
+        try {
+        const response = await chrome.runtime.sendMessage({
+            source: "content_script",
+            pattern: 'confirmshaming',
+            list: confirmshamingResults
+        });
+        console.log("Confirmshaming results sent:", confirmshamingResults);
+        } catch (error) {
+        console.error("Error sending confirmshaming results:", error);
+        }
+    })();
+    }
+}
+
+// 调用 Gemini API 来分析文本是否为 Confirmshaming
+async function checkTextWithGemini(text, context = '') {
+    try {
+    // 构建 API 请求参数
+    const apiKey = 'AIzaSyDKjUbXwdO1iTh5WjBYe-hsCQHTQUCuNf0'; // 替换为你的 API 密钥
+    const apiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    
+    
+    // 构造完整的 prompt
+    let prompt = `请判断以下文本是否属于"确认羞辱"(Confirmshaming)这种暗模式。
+确认羞辱是指网站或应用通过使用具有羞辱性、内疚感或负面情绪的语言来劝阻用户退出、取消或拒绝某些操作。
+
+示例确认羞辱文本:
+- "不，我不想省钱"
+- "不，我不关心我的网络安全"
+- "我喜欢错过特别优惠"
+- "不用了，我不需要更好的服务"
+
+请分析以下文本，如果是确认羞辱模式返回 true，否则返回 false。
+只需返回 true 或 false，不要有其他任何额外文字:
+
+文本: "${text}"`;
+
+    if (context) {
+        prompt += `\n上下文信息: "${context}"`;
+    }
+    
+    // 发送请求到 Gemini API
+    const response = await fetch(`${apiEndpoint}?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+        contents: [{
+            parts: [{
+            text: prompt
+            }]
+        }],
+        generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 10
+        }
+        })
+    });
+    
+    const data = await response.json();
+
+    console.log('Gemini API response:', data);
+    
+    // 解析响应
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+        const result = data.candidates[0].content.parts[0].text.trim().toLowerCase();
+        return result.includes('true');
+    }
+    
+    return false;
+    } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    return false;
+    }
+}
+
+// function checkTextwithTransformersJS() {
+    
+// }
+
+
+
 detectPreselectedCheckbox();
 detectBaitSwitch();
+detectConfirmshaming();
+
+

@@ -2,6 +2,9 @@
 // const logDiv = document.getElementById('log');
 // //初始化时清空内容
 
+const startTime = performance.now();
+
+
 function getIssueItem(item) {
     // return (
     //     <div class="issue-item">
@@ -54,3 +57,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse('Popup displayed log');
     return true;
 });
+
+// 插件加载过程，例如加载页面、请求资源等
+window.addEventListener('load', () => {
+    const endTime = performance.now();
+    console.log(`popup loading completed: ${endTime - startTime} ms`);
+  });
