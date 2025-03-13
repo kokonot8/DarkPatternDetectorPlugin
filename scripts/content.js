@@ -25,24 +25,39 @@ function detectPreselectedCheckbox() {
         }
         // console.log(text);
         const darkPatternKeywords = ['subscription','subcribe','email','premium', 'extra', 'privacy', 'share', 'promotion', 'advertisement', 'marketing', 'agree to receive'];
-        if (darkPatternKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
-            console.log('found potential dark pattern:', text);
-            message = {
-                'pattern': 'pre-selected checkbox',
-                'detail': 'including key word' + keyword,
-                'element': box
-            };
+        // if (darkPatternKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
+        //     console.log('found potential dark pattern:', text);
+        //     message = {
+        //         'pattern': 'pre-selected checkbox',
+        //         'detail': 'including key word' + keyword,
+        //         'element': box
+        //     };
             
-            boxList.push(message);
+        //     boxList.push(message);
 
-            box.style.outline = '2px solid red';
-        }
-
+        //     box.style.outline = '2px solid red';
+        // }
+        darkPatternKeywords.forEach(keyword => {
+            if (text.toLowerCase().includes(keyword)) {
+                console.log('found potential dark pattern:', text);
+                message = {
+                    'pattern': 'pre-selected checkbox',
+                    'detail': 'including key word ' + keyword,
+                    'element': box
+                };
+                
+                boxList.push(message);
+                box.style.outline = '2px solid red';
+            }
+        })
     });
 
     // send message to background
     (async ()=> {
-        const response = await chrome.runtime.sendMessage({ source: "content_script", pattern: 'pre-selected checkbox', list: boxList }, () => {
+        const response = await chrome.runtime.sendMessage({ 
+            source: "content_script", 
+            pattern: 'pre-selected checkbox', 
+            list: boxList }, () => {
             console.log("massage sent:", boxList);
         });
     })();
@@ -137,7 +152,10 @@ function detectBaitSwitch() {
 
     // send message to background
     (async ()=> {
-        const response = await chrome.runtime.sendMessage({ source: "content_script", pattern: 'bait and switch', list: detectedList }, () => {
+        const response = await chrome.runtime.sendMessage({ 
+            source: "content_script", 
+            pattern: 'bait and switch', 
+            list: detectedList }, () => {
             console.log("massage sent:", detectedList);
         });
     })();
@@ -207,7 +225,7 @@ async function detectConfirmshaming() {
         // 将结果加入列表
         confirmshamingResults.push({
         'pattern': 'confirmshaming',
-        'detail': `用户拒绝时使用羞辱性语言: "${item.text}"`,
+        'detail': `use guilt-inducing language: "${item.text}"`,
         'element': item.element
         });
     }
@@ -299,8 +317,17 @@ async function checkTextWithGemini(text, context = '') {
 
 
 
-detectPreselectedCheckbox();
-detectBaitSwitch();
-detectConfirmshaming();
+// detectPreselectedCheckbox();
+// detectBaitSwitch();
+// detectConfirmshaming();
 
 
+// 在开始新的检测前清除之前的结果
+chrome.storage.local.remove('allDetectionResults', async () => {
+    console.log('Cleared previous detection results');
+    
+    // 按顺序执行检测
+    await detectPreselectedCheckbox();
+    await detectBaitSwitch();
+    await detectConfirmshaming();
+});

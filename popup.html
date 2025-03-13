@@ -23,20 +23,17 @@
     </div>
 
     <div class="tab-section">
-      <button class="tab">Overview</button>
-      <button class="tab">Detail</button>
+      <button class="tab active" correspond-div="overview">Overview</button>
+      <button class="tab" correspond-div="detail">Detail</button>
     </div>
 
-    <div class="overview">
+    <div class="overview active-div">
       <h2>Detected Dark Patterns:</h2>
       <ul id="overview-list">
-        <!-- <li> 
-          <p class="type">Pre-selected Checkbox: </p>
-          <p id="pre-selected-checkbox" class="number">Loading</p>
-        </li> -->
+
       </ul>
     </div>
-    <script src="popup.js"></script>
+    <script type="module" src="popup.js"></script>
   </body>
 
   <div class="detail">
