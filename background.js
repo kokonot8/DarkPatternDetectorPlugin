@@ -1,48 +1,51 @@
 // console.log("background running");
 
-// 使用内存中的变量来跟踪所有结果
-let allResults = {};
+// 使用 Map 来存储每个 tab 的结果
+let tabResults = new Map();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.source === "popup_request") {
-        // 直接发送内存中的所有结果
-        const resultsArray = Object.values(allResults);
-        console.log("Sending to popup:", resultsArray);
-        
-        chrome.runtime.sendMessage({
-            results: resultsArray,
-            source: "background_script"
+        // 获取当前活动标签页的结果
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            if (tabs.length > 0) {
+                const currentTabId = tabs[0].id;
+                const results = tabResults.get(currentTabId) || [];
+                sendResponse({results: results});
+            } else {
+                sendResponse({results: []});
+            }
         });
-        
-        sendResponse('Background received message and sent to popup');
-        return true;
+        return true; // 保持消息端口开启
     }
     
     if (message.source === "content_script") {
-        // 更新内存中的结果
-        allResults[message.pattern] = {
-            pattern: message.pattern,
-            source: message.source,
-            list: message.list
-        };
-        
-        console.log("Current all results:", allResults);
-        
-        // 将完整的结果保存到存储中
-        chrome.storage.local.set({
-            allDetectionResults: allResults
-        }, () => {
-            console.log("Saved all results to storage:", allResults);
-        });
+        // 存储特定标签页的结果
+        if (sender.tab && sender.tab.id) {
+            const tabId = sender.tab.id;
+            if (!tabResults.has(tabId)) {
+                tabResults.set(tabId, {});
+            }
+            const currentResults = tabResults.get(tabId);
+            currentResults[message.pattern] = {
+                pattern: message.pattern,
+                source: message.source,
+                list: message.list
+            };
+            tabResults.set(tabId, currentResults);
+        }
+        sendResponse({status: 'success'});
+        return true; // 保持消息端口开启
     }
 });
 
-// 当扩展启动时，清除之前的结果
+// 当标签页关闭时清除其结果
+chrome.tabs.onRemoved.addListener((tabId) => {
+    tabResults.delete(tabId);
+});
+
+// 当扩展启动时初始化存储
 chrome.runtime.onInstalled.addListener(() => {
-    allResults = {};
-    chrome.storage.local.remove('allDetectionResults', () => {
-        console.log('Cleared previous detection results');
-    });
+    tabResults = new Map();
 });
 
 

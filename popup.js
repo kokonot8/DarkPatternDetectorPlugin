@@ -28,74 +28,78 @@ function getIssueItem(item) {
 }
 
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const patternCounts = {};
 
-    // popup打开后请求数据
-    chrome.runtime.sendMessage({ source: "popup_request" }, (response) => {
-        console.log("Sent request to background:", response);
-    });
-    
-    // Listen for response from background
-    chrome.runtime.onMessage.addListener((result, sender, sendResponse) => {
-        if (result.source === "background_script") {
-            console.log("Popup received full message:", result);
-            console.log("Results array:", result.results);
-            
-            if (result.results && Array.isArray(result.results)) {
-                // 清空之前的内容
-                const overviewDiv = document.getElementById('overview-list');
-                const issueList = document.getElementById('issue-list');
-                overviewDiv.innerHTML = '';
-                issueList.innerHTML = '';
-
-                let hasDetections = false;
-
-                result.results.forEach(message => {
-                    console.log("Processing message:", message);
-                    if (message && message.pattern) {
-                        //统计每个pattern type的个数
-                        if (!patternCounts[message.pattern]) {
-                            patternCounts[message.pattern] = 0;
-                        }
-                        patternCounts[message.pattern] += message.list.length;
-
-                        if (message.list.length > 0) {
-                            hasDetections = true;
-                            //填充overview区域
-                            const overviewListItem = document.createElement('li');
-                            const pattern = document.createElement('p');
-                            pattern.textContent = message.pattern + ':';
-                            const num = document.createElement('p');
-                            num.textContent = message.list.length;
-                            overviewListItem.appendChild(pattern);
-                            overviewListItem.appendChild(num);
-                            overviewDiv.appendChild(overviewListItem);
-
-                            //填充detail区域
-                            message.list.forEach(item => {
-                                const issueItem = getIssueItem(item);
-                                issueList.appendChild(issueItem);
-                            });
-                        }
-                    }
-                });
-
-                // 如果没有检测到任何暗模式，显示提示信息
-                if (!hasDetections) {
-                    const overviewListItem = document.createElement('li');
-                    const pattern = document.createElement('p');
-                    pattern.textContent = "No dark pattern detected on this page.";
-                    overviewListItem.appendChild(pattern);
-                    overviewDiv.appendChild(overviewListItem);
+    try {
+        // 请求当前标签页的数据
+        const response = await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage({ source: "popup_request" }, (response) => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(response);
                 }
+            });
+        });
 
-                // Calculate and update score
-                const score = calculateUnethicalScore(patternCounts);
-                updateScoreDisplay(score);
-            }
+        // 清空之前的内容
+        const overviewDiv = document.getElementById('overview-list');
+        const issueList = document.getElementById('issue-list');
+        overviewDiv.innerHTML = '';
+        issueList.innerHTML = '';
+
+        let hasDetections = false;
+
+        if (response && response.results) {
+            const results = Object.values(response.results);
+            
+            results.forEach(message => {
+                if (message && message.pattern && message.list) {
+                    // 统计每个 pattern type 的个数
+                    if (!patternCounts[message.pattern]) {
+                        patternCounts[message.pattern] = 0;
+                    }
+                    patternCounts[message.pattern] += message.list.length;
+
+                    if (message.list.length > 0) {
+                        hasDetections = true;
+                        // 填充 overview 区域
+                        const overviewListItem = document.createElement('li');
+                        const pattern = document.createElement('p');
+                        pattern.textContent = message.pattern + ':';
+                        const num = document.createElement('p');
+                        num.textContent = message.list.length;
+                        overviewListItem.appendChild(pattern);
+                        overviewListItem.appendChild(num);
+                        overviewDiv.appendChild(overviewListItem);
+
+                        // 填充 detail 区域
+                        message.list.forEach(item => {
+                            const issueItem = getIssueItem(item);
+                            issueList.appendChild(issueItem);
+                        });
+                    }
+                }
+            });
         }
-    });
+
+        // 如果没有检测到任何暗模式，显示提示信息
+        if (!hasDetections) {
+            const overviewListItem = document.createElement('li');
+            const pattern = document.createElement('p');
+            pattern.textContent = "No dark pattern detected on this page.";
+            overviewListItem.appendChild(pattern);
+            overviewDiv.appendChild(overviewListItem);
+        }
+
+        // 更新分数显示
+        const score = calculateUnethicalScore(patternCounts);
+        updateScoreDisplay(score);
+
+    } catch (error) {
+        console.error('Error getting detection results:', error);
+    }
 
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => {

@@ -1,0 +1,8 @@
+{
+  "name": "dark-pattern-detector",
+  "version": "1.0.0",
+  "description": "A Chrome extension to detect dark patterns",
+  "dependencies": {
+    "onnxruntime-web": "^1.17.0"
+  }
+} 
