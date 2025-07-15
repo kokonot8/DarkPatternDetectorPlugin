@@ -1,3 +1,4 @@
 node_modules/**
 utils/distilbert_onnx/**
 experiment/model/confirmshaming_model/model.safetensors 
+utils/confirmshaming_model/model.safetensors
