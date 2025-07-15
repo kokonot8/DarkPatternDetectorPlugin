@@ -48,12 +48,12 @@ def run_claude(texts):
 
     preds = []
     for text in texts:
-        #zero-shot
-        prompt = (
-            "Determine if the following sentence uses confirmshaming (i.e., guilt-tripping users for not taking an action).\n"
-            "Reply only with a single number: 1 (if it uses confirmshaming) or 0 (if it does not).\n\n"
-            f"Sentence: \"{text}\"\nAnswer:"
-        )
+        # #zero-shot
+        # prompt = (
+        #     "Determine if the following sentence uses confirmshaming (i.e., guilt-tripping users for not taking an action).\n"
+        #     "Reply only with a single number: 1 (if it uses confirmshaming) or 0 (if it does not).\n\n"
+        #     f"Sentence: \"{text}\"\nAnswer:"
+        # )
         # ##one shot
         # prompt = (
         #     "Determine if the following sentence uses confirmshaming (i.e., guilt-tripping users for not taking an action).\n"
@@ -63,21 +63,21 @@ def run_claude(texts):
         #     "Answer: 1"
         #     f"Sentence: \"{text}\"\nAnswer:"
         # )
-        ##few-shot
-        # prompt = (
-        #     "Determine if the following sentence uses confirmshaming (i.e., guilt-tripping users for not taking an action).\n"
-        #     "Reply only with a single number: 1 (if it uses confirmshaming) or 0 (if it does not).\n"
-        #     "Example:"
-        #     "Sentence: \"No thanks, I don't like saving money\""
-        #     "Answer: 1"
-        #     "Sentence: \"No, I will shop with no discount\""
-        #     "Answer: 1"
-        #     "Sentence: \"Click below to cancel your subscription. Are you sure?\""
-        #     "Answer: 0"
-        #     "Sentence: \"You're about to cancel your subscription. Please confirm\""
-        #     "Answer: 0"
-        #     f"Sentence: \"{text}\"\nAnswer:"
-        # )
+        #few-shot
+        prompt = (
+            "Determine if the following sentence uses confirmshaming (i.e., guilt-tripping users for not taking an action).\n"
+            "Reply only with a single number: 1 (if it uses confirmshaming) or 0 (if it does not).\n"
+            "Example:"
+            "Sentence: \"No thanks, I don't like saving money\""
+            "Answer: 1"
+            "Sentence: \"No, I will shop with no discount\""
+            "Answer: 1"
+            "Sentence: \"Click below to cancel your subscription. Are you sure?\""
+            "Answer: 0"
+            "Sentence: \"You're about to cancel your subscription. Please confirm\""
+            "Answer: 0"
+            f"Sentence: \"{text}\"\nAnswer:"
+        )
         try:
             response = client.messages.create(
                 model="claude-3-opus-20240229",  # 可换成 haiku/sonnet
