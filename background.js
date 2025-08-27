@@ -36,6 +36,43 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({status: 'success'});
         return true; // 保持消息端口开启
     }
+
+    // curl https://api.anthropic.com/v1/messages -H "x-api-key: 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" -H "anthropic-version: 2023-06-01" -H "content-type: application/json" -d "{\"model\": \"claude-opus-4-20250514\",\"max_tokens\": 10,\"messages\": [{\"role\": \"user\", \"content\": \"Hello\"}]}"
+
+    // 🤖 3. content script 请求 Claude API 检测文字
+    if (message.type === "callClaude") {
+        console.log("收到检测请求：", message.prompt);
+        const prompt = message.prompt;
+
+        fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-api-key": "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", // ✅ 替换为你的 API Key
+                "anthropic-version": "2023-06-01",
+                "anthropic-dangerous-direct-browser-access": "true" // 解决 CORS 的 header
+            },
+            body: JSON.stringify({
+                model: "claude-opus-4-20250514",
+                max_tokens: 5,
+                temperature: 0,
+                messages: [
+                    { role: "user", content: prompt }
+                ]
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log("Claude API 返回：", data);
+            sendResponse({ success: true, result: data });
+        })
+        .catch(error => {
+            console.error("❌ Claude 调用失败:", error);
+            sendResponse({ success: false, error: error.message });
+        });
+
+        return true; // ✅ 异步响应
+    }
 });
 
 // 当标签页关闭时清除其结果

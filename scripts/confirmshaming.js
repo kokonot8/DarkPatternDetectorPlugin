@@ -183,9 +183,6 @@
 
 // Claude推理类
 class ClaudeConfirmshamingDetector {
-    constructor() {
-        this.model = "claude-3-opus-20240229";
-    }
 
     async detectConfirmshaming(text) {
         const prompt = (
@@ -205,14 +202,13 @@ class ClaudeConfirmshamingDetector {
 
         try {
             const response = await chrome.runtime.sendMessage({
-                action: "callClaude",
+                type: "callClaude",
                 prompt: prompt
             });
 
-            const answer = (response || "").trim();
+            const answer = (response.result?.content?.[0]?.text || "").trim();
             if (answer.startsWith("1")) return true;
             if (answer.startsWith("0")) return false;
-            console.warn("⚠️ Unexpected Claude answer:", answer);
             return false;
         } catch (error) {
             console.error("❌ Claude detection error:", error);
@@ -231,11 +227,12 @@ async function detectConfirmshaming() {
     cancelButtons.forEach(element => {
         const text = element.innerText || element.textContent;
         if (text) {
-            const cancelKeywords = ['no thanks', 'cancel', 'close', 'maybe later', 'not now', 'no', 'unsubscribe'];
+            const cancelKeywords = ['no thanks', 'cancel', 'close', 'maybe later', 'not now', 'no', 'unsubscribe','start','yes'];
             if (cancelKeywords.some(keyword => text.toLowerCase().includes(keyword))) {
                 elementsToCheck.push({ element, text: text.trim(), type: 'cancel button' });
             }
         }
+        console.log('text:', text);
     });
 
     // 模态框中按钮
@@ -256,6 +253,10 @@ async function detectConfirmshaming() {
             }
         });
     });
+
+    //开始调用LLM API
+    // 告诉popup显示加载状态
+    chrome.runtime.sendMessage({ source: "loading_status", loading: true });
 
     const confirmshamingResults = [];
 

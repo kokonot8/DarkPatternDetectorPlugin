@@ -11,8 +11,7 @@
   ],
   "host_permissions": ["<all_urls>"],
   "action": {
-      "default_popup": "popup.html",
-      "default_width": 600
+      "default_popup": "popup.html"
   },
   "background": {
       "service_worker": "background.js"

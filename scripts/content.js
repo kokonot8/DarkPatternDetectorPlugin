@@ -562,6 +562,29 @@ function checkOnClickForRedirect(onClickContent) {
 //     }
 // }
 
+function reportDetection(message) {
+    // 替代原来的 detectedList.push
+    detectedList.push(message);
+
+    // 不再包含不可序列化的 element 节点
+    const safeMessage = {
+        ...message,
+        element: {
+            tag: message.element?.tagName,
+            id: message.element?.id,
+            class: message.element?.className,
+            text: message.element?.innerText?.slice(0, 100) // 避免太长
+        }
+    };
+
+    chrome.runtime.sendMessage({
+        source: "content_script",
+        pattern: message.pattern,
+        list: [safeMessage]
+    }, () => {
+        console.log("message sent:", safeMessage);
+    });
+}
 
 
 
@@ -610,6 +633,7 @@ function detectBaitSwitch() {
     console.log('Found possible download buttons:', possibleDownloadButtons.length);
 
     possibleDownloadButtons.forEach(button => {
+        console.log('Checking button:', button);
         let onClickContent;
 
         if (button.hasAttribute('onclick')) {
@@ -661,6 +685,66 @@ function detectBaitSwitch() {
             }
         }
     });
+
+        // ✅ 新增恶意域名黑名单
+    const suspiciousDomains = [
+        "paupsoborofoow.net",
+        "tags.bluekai.com", 
+        "popads.net"
+        // 可拓展更多已知劫持脚本来源
+    ];
+
+    // ✅ 插入检测动态 script 标签的 MutationObserver
+    const observer = new MutationObserver((mutationsList) => {
+        for (const mutation of mutationsList) {
+            for (const node of mutation.addedNodes) {
+                if (
+                    node.tagName === 'SCRIPT' &&
+                    node.src &&
+                    suspiciousDomains.some(domain => node.src.includes(domain))
+                ) {
+                    const message = {
+                        'pattern': 'bait and switch',
+                        'detail': `detected malicious external script from: ${node.src}`,
+                        element: node
+                    };
+                
+                    // detectedList.push(message);
+                    reportDetection(message); // 使用新的报告函数
+
+                    node.style = "outline: 2px solid orange";
+                    console.log("⚠️ 插件检测到潜在广告脚本：", node.src);
+                    // // 可选择移除
+                    // node.remove();
+                }
+            }
+        }
+    });
+    observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+    });
+
+    // // ✅ 检测点击事件劫持脚本（例如 window._lcmw91ggfx8），这个太容易误报了，暂时注释掉
+    // document.addEventListener("click", (e) => {
+    //     const suspiciousGlobalKeys = Object.keys(window).filter(key =>
+    //         /^_lcmw[0-9a-z]{8}$/i.test(key) || suspiciousDomains.some(domain => window[key]?.toString().includes(domain))
+    //     );
+
+    //     if (suspiciousGlobalKeys.length > 0) {
+    //         e.stopPropagation();
+    //         e.preventDefault();
+    //         const message = {
+    //             'pattern': 'bait and switch',
+    //             'detail': `Suspicious global function(s): ${suspiciousGlobalKeys.join(', ')}`,
+    //             element: e.target
+    //         };
+    //         // detectedList.push(message);
+    //         reportDetection(message); // 使用新的报告函数
+    //         e.target.style.outline = '2px dashed orange';
+    //         console.log("⚠️ 点击劫持行为已阻止", suspiciousGlobalKeys);
+    //     }
+    // }, true);
 
     console.log('detectedList:', detectedList);
 

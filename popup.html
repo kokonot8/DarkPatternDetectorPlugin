@@ -1,46 +1,56 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="popup.css" rel="stylesheet"/>
   </head>
   <body>
-    <!-- Header -->
-    <!-- ScoreSection -->
-    <!--TabSection -->
-    <!--IssueList -->
-    <!--IssueItem -->
-    <!--FooterSection -->
+    <div class="main-container">
+      <!-- Header -->
+      <div class="header">
+        <img src="icons8-laptop-error-100.png" alt="logo" width="24px"/>
+        <h1>Unethical Element Detector</h1>
+      </div>
 
-    <div class="header">
-      <img src="icons8-laptop-error-100.png" alt="logo" width="20px"/>
-      <h1>Unethical Element Detector<h1>
+      <!-- Score Section -->
+      <div class="score-section">
+        <div class="score-header">
+          <span class="score-title">Unethical Score</span>
+          <span class="score-value" id="score-value">XX/100</span>
+        </div>
+        <div class="progress-container">
+          <progress id="score-progress" value="60" max="100"></progress>
+        </div>
+        <p class="score-description" id="score-description">Analyzing...</p>
+      </div>
+
+      <!-- Tab Section -->
+      <div class="tab-section">
+        <button class="tab active" data-target="overview">Overview</button>
+        <button class="tab" data-target="detail">Detail</button>
+      </div>
+
+      <!-- Content Sections -->
+      <div class="overview active-div" id="overview">
+        <h2>Detected Dark Patterns</h2>
+        <div id="status"></div>
+        <ul id="overview-list">
+          <!-- Overview items will be populated by JavaScript -->
+        </ul>
+      </div>
+
+      <div class="detail" id="detail">
+        <h2>Dark Pattern Details</h2>
+        <div id="issue-list">
+          <!-- Detail items will be populated by JavaScript -->
+        </div>
+      </div>
     </div>
 
-    <div class="score-section">
-      <p>Unethical Score: XX/100</p>
-      <progress value="60" max="100"></progress>
-      <p>X</p>
-    </div>
-
-    <div class="tab-section">
-      <button class="tab active" correspond-div="overview">Overview</button>
-      <button class="tab" correspond-div="detail">Detail</button>
-    </div>
-
-    <div class="overview active-div">
-      <h2>Detected Dark Patterns:</h2>
-      <ul id="overview-list">
-
-      </ul>
-    </div>
     <script type="module" src="popup.js"></script>
   </body>
-
-  <div class="detail">
-    <h2>Details of Detected Dark Patterns</h2>
-    <div id="issue-list">
-    </div>
-  </div>
+</html>
 
 
 
