@@ -1,3 +1,5 @@
-![Screenshot](./fig/1.png)
-![Screenshot](./fig/2.png)
-![Screenshot](./fig/3.png)
+<img src="./fig/1.png" width="50%" height="auto" alt="Screenshot 1" align="center" />
+
+<img src="./fig/2.png" width="50%" height="auto" alt="Screenshot 2" align="center" />
+
+<img src="./fig/3.png" width="50%" height="auto" alt="Screenshot 3" align="center" />
